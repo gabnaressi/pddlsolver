@@ -6,7 +6,7 @@ from queue import PriorityQueue
 from math import inf
 import pdb
 
-HEURISTICA = '1'
+
 
 def hash_state(state):
         return hash(tuple(state.predicates))
@@ -82,11 +82,9 @@ class State:
         
         
         
+HEURISTICA = '1'
         
-        
-        
-        
-        
+
 # Le o PDDL
 problema = pddlpy.DomainProblem('C:/Users/Gabriel/Desktop/ep_plan/robot_domain.pddl','C:/Users/Gabriel/Desktop/ep_plan/robot_problem.pddl')
 
@@ -113,7 +111,7 @@ def heuristica_FF(problem, state):
                 problema_copia = deepcopy(problema)
                 for action in list(problema_copia.ground_operator(operator)):
                     if(is_applicable(camadas[-1],action)):
-                        proxEstado.add_predicates(apply_action(proxEstado, action).predicates)
+                        proxEstado.add_predicates(apply_action(proxEstado, action, True).predicates)
         if(camadas[-1].predicates == proxEstado.predicates)
             return math.inf
         camadas.append(proxEstado)    
@@ -153,7 +151,7 @@ def a_estrela(problem, heuristic):
             problema_copia = deepcopy(problema)
             for action in list(problema_copia.ground_operator(operator)):
                 if(is_applicable(atual,action)):
-                    result_state = apply_action(atual, action)
+                    result_state = apply_action(atual, action, False)
                     estados_gerados = estados_gerados + 1
                     if(hash_state(result_state) not in estados_conhecidos):
                         ramificacao_atual = ramificacao_atual + 1
