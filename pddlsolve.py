@@ -6,6 +6,8 @@ from queue import PriorityQueue
 from math import inf
 import pdb
 
+HEURISTICA = '1'
+
 def hash_state(state):
         return hash(tuple(state.predicates))
         
@@ -16,16 +18,19 @@ def is_applicable(state, action):
     else:
         return False
     
-def apply_action(state, action):
+def apply_action(state, action, isHeuristic=False):
     if(is_applicable(state,action)):
         state_ret = deepcopy(state)
         state_ret.add_predicates(action.effect_pos)
-        state_ret.remove_predicates(action.effect_neg)
+        if(!isHeuristic)
+            state_ret.remove_predicates(action.effect_neg)
         state_ret.register_action(action)
         state_ret.hash_state()
         return state_ret
     else:
         return False
+
+        
         
 class State:
     def __init__(self):
@@ -57,9 +62,10 @@ class State:
         self.g = self.g + 1
 
     def calculate_heuristic(self,method):
-        #if(method=='1'):
-        self.h = 1
-        #elif(method='FF'):
+        if(method=='1'):
+            self.h = 1
+        elif(method='FF'):
+            self.h = heuristica_FF(self)
     
     def cost(self):
         return self.g + self.h
@@ -88,8 +94,7 @@ problema = pddlpy.DomainProblem('C:/Users/Gabriel/Desktop/ep_plan/robot_domain.p
 estado_inicial = State()
 for atom in problema.initialstate():
     estado_inicial.add_predicate(tuple(atom.predicate))
-estado_inicial.calculate_heuristic('one')
-
+estado_inicial.calculate_heuristic(HEURISTICA)
 
 
 estado_objetivo = State()
@@ -97,6 +102,22 @@ for atom in problema.goals():
     estado_objetivo.add_predicate(tuple(atom.predicate))
 hash_objetivo = estado_objetivo.hash_state()
 
+# https://ae4.tidia-ae.usp.br/access/content/group/a13a6c45-779e-45bf-a740-e1bfe059b8b6/Parte%20I/Aula6-GraphplanParteII.pdf
+# https://ae4.tidia-ae.usp.br/access/content/group/a13a6c45-779e-45bf-a740-e1bfe059b8b6/EP1-2019-Karina.pdf
+def heuristica_FF(problem, state): 
+    camadas = [state]
+    
+    while (!if(camadas[-1].predicates.issuperset(estado_objetivo.predicates)) )
+        proxEstado = deepcopy(camadas[-1])
+        for operator in list(problema.operators()):
+                problema_copia = deepcopy(problema)
+                for action in list(problema_copia.ground_operator(operator)):
+                    if(is_applicable(camadas[-1],action)):
+                        proxEstado.add_predicates(apply_action(proxEstado, action).predicates)
+        if(camadas[-1].predicates == proxEstado.predicates)
+            return math.inf
+        camadas.append(proxEstado)    
+    return len(camadas)
 
 # A*
 def a_estrela(problem, heuristic):
@@ -136,7 +157,7 @@ def a_estrela(problem, heuristic):
                     estados_gerados = estados_gerados + 1
                     if(hash_state(result_state) not in estados_conhecidos):
                         ramificacao_atual = ramificacao_atual + 1
-                        result_state.calculate_heuristic(heuristic)
+                        result_state.calculate_heuristic(HEURISTICA)
                         result_state.cost()
                         fila_prioridade.put(result_state)
                         estados_conhecidos.append(hash_state(result_state))
